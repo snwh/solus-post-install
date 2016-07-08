@@ -1,0 +1,127 @@
+#!/bin/bash
+
+# Google Chrome
+function google-chrome {
+eval `resize` 
+exitstatus=$?
+if [ $exitstatus = 0 ]; then
+    status="0"
+    while [ "$status" -eq 0 ]  
+    do
+       
+        VERSION=$(whiptail \
+        --title "Google Chrome" --radiolist \
+        "Which version of Chrome would you like to install?" \
+        --ok-button "Install" \
+        --cancel-button "Go Back" \
+        $LINES $COLUMNS $(( $LINES - 12 )) \
+        "stable"    "Stable build" ON \
+        "beta"      "Beta build" OFF \
+        "unstable"  "Unstable build" OFF \
+        3>&1 1>&2 2>&3) 
+         
+        # Change to lower case and remove spaces.
+        case "${VERSION}" in
+            stable) 
+                # Variables
+                PACKAGE=google-chrome-stable
+                NAME="Google Chrome"
+                CATEGORY=network/web/browser
+                # Check if already installed
+                echo 'Checking if '$NAME' is already installed...'
+                PKGCHECK=$(eopkg info -s $PACKAGE|grep "not installed")
+                if [ "" == "$PKGCHECK" ]; then
+                    echo $NAME 'is not installed. Proceeding'
+                    # Building eopkg for installation
+                    show_info 'Building '$NAME'...'
+                    sudo eopkg bi --ignore-safety https://raw.githubusercontent.com/solus-project/3rd-party/master/$CATEGORY/google-chrome-stable/pspec.xml
+                    # Install package(s)
+                    show_info 'Installing '$NAME'...'
+                    show_warning 'Requires root privileges'
+                    sudo eopkg it -y $PACKAGE*.eopkg
+                    # Cleanup and finish
+                    sudo rm $PACKAGE*.eopkg
+                    # Done
+                    show_success 'Done.'
+                    whiptail --title "Finished" --msgbox "Installation of  $NAME complete." 8 78
+                    status=1
+                    thirdparty
+                else
+                    # Already installed
+                    show_success $NAME 'already installed.'
+                    whiptail --title "Finished" --msgbox "$NAME is already installed." 8 78
+                    thirdparty
+                fi
+            ;;
+            beta)
+                # Variables
+                PACKAGE=google-chrome-beta
+                NAME="Google Chrome Beta"
+                CATEGORY=network/web/browser
+                # Check if already installed
+                echo 'Checking if '$NAME' is already installed...'
+                PKGCHECK=$(eopkg info -s $PACKAGE|grep "not installed")
+                if [ "" == "$PKGCHECK" ]; then
+                    echo $NAME 'is not installed. Proceeding'
+                    # Building eopkg for installation
+                    show_info 'Building '$NAME'...'
+                    sudo eopkg bi --ignore-safety https://raw.githubusercontent.com/solus-project/3rd-party/master/$CATEGORY/$PACKAGE/pspec.xml
+                    # Install package(s)
+                    show_info 'Installing '$NAME'...'
+                    show_warning 'Requires root privileges'
+                    sudo eopkg it -y $PACKAGE*.eopkg
+                    # Cleanup and finish
+                    sudo rm $PACKAGE*.eopkg
+                    # Done
+                    show_success 'Done.'
+                    whiptail --title "Finished" --msgbox "Installation of $NAME complete." 8 78
+                    status=1
+                    thirdparty
+                else
+                    # Already installed
+                    show_success $NAME 'already installed.'
+                    whiptail --title "Finished" --msgbox "$NAME is already installed." 8 78
+                    thirdparty
+                fi
+            ;;
+            unstable) 
+                # Variables
+                PACKAGE=google-chrome-unstable
+                NAME="Google Chrome unstable build"
+                CATEGORY=network/web/browser
+                # Check if already installed
+                echo 'Checking if '$NAME' is already installed...'
+                PKGCHECK=$(eopkg info -s $PACKAGE|grep "not installed")
+                if [ "" == "$PKGCHECK" ]; then
+                    echo $NAME 'is not installed. Proceeding'
+                    # Building eopkg for installation
+                    show_info 'Building '$NAME'...'
+                    sudo eopkg bi --ignore-safety https://raw.githubusercontent.com/solus-project/3rd-party/master/$CATEGORY/$PACKAGE/pspec.xml
+                    # Install package(s)
+                    show_info 'Installing '$NAME'...'
+                    show_warning 'Requires root privileges'
+                    sudo eopkg it -y $PACKAGE*.eopkg
+                    # Cleanup and finish
+                    sudo rm $PACKAGE*.eopkg
+                    # Done
+                    show_success 'Done.'
+                    whiptail --title "Finished" --msgbox "Installation of $NAME complete." 8 78
+                    status=1
+                    thirdparty
+                else
+                    # Already installed
+                    show_success $NAME 'already installed.'
+                    whiptail --title "Finished" --msgbox "$NAME is already installed." 8 78
+                    thirdparty
+                fi
+            ;;
+            *) status=1 
+                thirdparty
+            ;;
+        esac
+        exitstatus1=$status1
+    done
+else
+    thirdparty
+fi
+}

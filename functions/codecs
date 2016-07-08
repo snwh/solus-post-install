@@ -1,0 +1,33 @@
+#!/bin/bash
+
+dir="$(dirname "$0")"
+
+CODECS="$dir/data/codecs.list"
+
+# Install preferred applications using the list of packages 'data/codecs.list'
+function codecs {
+    if (eval `resize` && whiptail \
+        --title "Preferred Applications" \
+        --yesno "Current list of preferred applications to install: \n\n$(cat $CODECS) \n\nProceed with installation?" \
+        $LINES $COLUMNS $(( $LINES - 12 )) \
+        --scrolltext) then
+        show_info 'Installing...'
+        show_warning 'Requires root privileges'
+        sudo eopkg it -y $(cat $CODECS)
+        # Done
+        show_success 'Done.'
+        # Check
+        EXITSTATUS=$1
+        if [[ $EXITSTATUS != 0 ]]; then
+            # Already installed
+            show_success 'Already installed.'
+            whiptail --title "Finished" --msgbox "Your preferred applications are already installed." 8 78
+            main
+        else
+            whiptail --title "Finished" --msgbox "Installation complete." 8 78
+            main
+        fi
+    else
+        main
+    fi
+}

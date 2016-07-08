@@ -1,0 +1,73 @@
+#!/bin/bash
+
+dir="$(dirname "$0")"
+
+PURGED="$dir/data/purge.list"
+
+# Remove unused/unwanted packages that are listed in 'data/purge.list'
+function unused {
+    if (eval `resize` && whiptail \
+        --title "Remove Un-used Pre-installed Applications" \
+        --yesno "Current list of pre-installed applications to remove: \n\n$(cat $PURGED) \n\nAre you sure you want proceed?" \
+        $LINES $COLUMNS $(( $LINES - 12 )) \
+        --scrolltext ) then
+        show_info 'Removing unused pre-installed applications...'
+        show_warning 'Requires root privileges'
+        sudo eopkg rm -y $(cat $PURGED)
+        # Done
+        show_success 'Done.'
+        # Check
+        EXITSTATUS=$1
+        if [[ $EXITSTATUS != 0 ]]; then
+            whiptail --title "Finished" --msgbox "Your list of unwanted pre-installed applications have already been removed." 8 78
+            cleanup
+        else
+            whiptail --title "Finished" --msgbox "Removal complete." 8 78
+            cleanup
+        fi
+    else
+        cleanup
+    fi
+}
+
+# Clean stale locks
+function clean-stale {
+    show_info 'Removing stale package manager files...'
+    show_warning 'Requires root privileges'
+    sudo eopkg clean -y
+    show_success 'Done.'
+    whiptail --title "Finished" --msgbox "Package cache has been cleaned." 8 78
+    cleanup
+}
+
+# Clean package cache
+function clean-cache {
+    show_info 'Cleaning package cache...'
+    show_warning 'Requires root privileges'
+    sudo eopkg delete-cache -y
+    show_success 'Done.'
+    whiptail --title "Finished" --msgbox "Package cache has been cleaned." 8 78
+    cleanup
+}
+
+# Cleanup System
+function cleanup {
+    eval `resize` 
+    CLEANUP=$(whiptail \
+        --notags \
+        --title "System Cleanup" \
+        --menu "\nWhat would you like to do?" \
+        --cancel-button "Go Back" \
+        $LINES $COLUMNS $(( $LINES - 12 )) \
+        clean-stale		'Clean stale package files' \
+        clean-cache 	'Clean package cache' \
+        unused      	'Remove unused pre-installed packages' \
+        3>&1 1>&2 2>&3)
+     
+    exitstatus=$?
+    if [ $exitstatus = 0 ]; then
+        $CLEANUP
+    else
+        main
+    fi
+}
